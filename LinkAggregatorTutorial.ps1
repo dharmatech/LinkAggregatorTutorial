@@ -28,6 +28,7 @@
 # ## About this document
 
 # This tutorial was generated from a [source file](LinkAggregatorTutorial.ps1) written in PowerShell.
+# The script that converts the PowerShell source file to markdown is [here](https://github.com/dharmatech/LinkAggregatorTutorial/blob/main/ConvertToMarkdown.ps1).
 
 # That source file, when executed, will go through all the steps shown in this tutorial.
 # Thus the tutorial can always be validated to make sure that the steps are working properly by running the source file.
@@ -47,7 +48,9 @@
 #
 #     cd C:\Users\dharm\Dropbox\Documents\VisualStudio\LinkAggregatorTutorial
 #
-# to some directory on your system that you want the resulting project to be located in. 
+# to some directory on your system that you want the resulting project to be located in. So for example:
+#
+#     cd C:\Temp\LinkAggregatorTutorial
 
 # Run the source file:
 #
