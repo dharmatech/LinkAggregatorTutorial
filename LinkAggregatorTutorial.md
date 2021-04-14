@@ -41,10 +41,13 @@ Go to the directory where our project will be created.
 
 
 
-----------------------------------------------------------------------
+Create project directory
+
     New-Item -ItemType Directory -Name LinkAggregator
 
     cd LinkAggregator
+
+Create project
 
     dotnet new webapp --auth Individual --use-local-db
 
@@ -58,6 +61,10 @@ Go to the directory where our project will be created.
 ----------------------------------------------------------------------
 
 # `Link` model class for storing links
+
+Create the `Models\Link.cs` file.
+
+The text below is in diff format. The actual file contents of `Link.cs` start below the line that looks like `@@ -0,0 +1,12 @@`.
 
 ```diff 
 diff --git a/Models/Link.cs b/Models/Link.cs
