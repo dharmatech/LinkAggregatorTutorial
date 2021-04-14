@@ -58,6 +58,12 @@ Run the source file:
 
 This currently takes around 2 minutes to complete on my system.
 
+## Feedback
+
+If you feel that some aspect of the project could be built in a better way, feel free to leave an issue.
+
+If you notice any issue with the tutorial itself, also feel free to leave an issue.
+
 
 
 # Project directory
