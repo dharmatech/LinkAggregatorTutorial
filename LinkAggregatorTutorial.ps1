@@ -1338,7 +1338,7 @@ function run_canopy ()
 
     
 
-    dotnet run --project .\Test\Test.fsproj
+#    dotnet run --project .\Test\Test.fsproj
 
 
 
