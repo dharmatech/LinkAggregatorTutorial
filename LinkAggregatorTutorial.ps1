@@ -1292,9 +1292,7 @@ index 320174c..a52f0a9 100644
 # Create the test project
 
     dotnet new console --language f# --output Test
-    
-    # dotnet sln MvcMovieSaturn.sln add src/Test
-    
+        
     dotnet add Test/Test.fsproj package canopy
     
     dotnet add Test/Test.fsproj package Selenium.WebDriver.ChromeDriver
