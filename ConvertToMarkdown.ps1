@@ -1,11 +1,11 @@
 ﻿
 # 0.2 2021-04-11
 
-# cd .\Dropbox\Documents\VisualStudio\LinkAggregator-Generator
+# cd .\Dropbox\Documents\VisualStudio\LinkAggregatorTutorial
 
 param([switch]$gist)
 
-(Get-Content '.\LinkAggregator-Generator 0.1 .ps1' -Raw) -replace '(?s)# IGNORE-START.*?# IGNORE-END', '' | Set-Content pass-1.ps1
+(Get-Content .\LinkAggregatorTutorial.ps1 -Raw) -replace '(?s)# IGNORE-START.*?# IGNORE-END', '' | Set-Content pass-1.ps1
 
 (Get-Content .\pass-1.ps1 -Raw) -replace "\`$file = '(.*?)'", ("`n---`n" + 'File: `$1`')  | Set-Content pass-1.ps1
 
@@ -47,11 +47,11 @@ param([switch]$gist)
     elseif ($_ -match 'IGNORE-LINE-FOR-MARKDOWN') { }
     else { $_ }
 
-} | Set-Content LinkAggregator.md
+} | Set-Content LinkAggregatorTutorial.md
 
 if ($gist)
 {
-    $result = gh gist create LinkAggregator.md
+    $result = gh gist create LinkAggregatorTutorial.md
     
     Start-Process $result
 }
