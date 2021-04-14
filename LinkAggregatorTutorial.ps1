@@ -25,7 +25,7 @@
 
 # ## About this document
 
-# This tutorial was generated from a source file written in PowerShell.
+# This tutorial was generated from a [source file](LinkAggregatorTutorial.ps1) written in PowerShell.
 
 # That source file, when executed, will go through all the steps shown in this tutorial.
 # Thus the tutorial can always be validated to make sure that the steps are working properly by running the source file.
@@ -1336,15 +1336,6 @@ function run_canopy ()
     Receive-Job $job_canopy
 }
 
-    
-
-#    dotnet run --project .\Test\Test.fsproj
-
-
-
-
-
-
 function test-app()
 {
     reset-database
@@ -1356,8 +1347,6 @@ function test-app()
     Stop-Process $proc.Id
 }
 
-
 test-app
 
 Copy-Item .\screenshot-links.jpg ..
-
