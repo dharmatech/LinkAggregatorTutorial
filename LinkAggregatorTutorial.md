@@ -3,7 +3,9 @@
 
 ## Introduction
 
-Steps on how to build a simple link aggregator site in ASP.NET Core.
+This document provides steps on how to build a simple link aggregator site in ASP.NET Core Pages.
+
+Here's what the link list looks like:
 
 ![](screenshot-links.jpg)
 
