@@ -1175,8 +1175,6 @@ Create the test project
     
     dotnet add Test/Test.fsproj package Selenium.WebDriver.ChromeDriver
 
-    # dotnet run --project .\Test\Test.fsproj
-
 Remove old unit tests file
 
     Remove-Item .\Test\Program.fs
@@ -1325,55 +1323,18 @@ index 933dba4..d2731c1 100644
 
 
 
-function reset-database ()
-{
+Let's reset the database before running the tests:
+
     dotnet ef database drop -f
     dotnet ef database update
-}
 
-function run_app ()
-{
-    $items = 'dotnet run' -split ' '
+In one PowerShell window, run the LinkAggregator app:
 
-    Start-Process $items[0] $items[1..100] -PassThru
-}
+    dotnet run
 
-function run_canopy ()
-{
-    $dir = (Resolve-Path .).Path
+In another PowerShell window, run the tests:
 
-    $code = {
-        param($dir)
-
-        cd $dir
-        dotnet run --project .\Test\Test.fsproj 
-    }
-
-    $job_canopy = Start-Job -ScriptBlock $code -ArgumentList $dir
-
-
-    while ($job_canopy.State -ne 'Completed')
-    {
-        Start-Sleep -Seconds 2
-    }
-
-    Receive-Job $job_canopy
-}
-
-function test-app()
-{
-    reset-database
-    
-    $proc = run_app
-    
-    run_canopy
-
-    Stop-Process $proc.Id
-}
-
-test-app
-
-Copy-Item .\screenshot-links.jpg ..
+    dotnet run --project .\Test\Test.fsproj
 
 
 

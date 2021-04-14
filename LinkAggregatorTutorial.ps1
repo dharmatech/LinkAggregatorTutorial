@@ -1297,8 +1297,6 @@ index 320174c..a52f0a9 100644
     
     dotnet add Test/Test.fsproj package Selenium.WebDriver.ChromeDriver
 
-    # dotnet run --project .\Test\Test.fsproj
-
 # Remove old unit tests file
 
     Remove-Item .\Test\Program.fs
@@ -1445,7 +1443,7 @@ index 933dba4..d2731c1 100644
 
     git add . ; git commit --message 'Turn off https redirection'
 
-
+# IGNORE-START
 
 function reset-database ()
 {
@@ -1496,3 +1494,18 @@ function test-app()
 test-app
 
 Copy-Item .\screenshot-links.jpg ..
+
+# IGNORE-END
+
+# Let's reset the database before running the tests:
+
+#     dotnet ef database drop -f
+#     dotnet ef database update
+
+# In one PowerShell window, run the LinkAggregator app:
+
+#     dotnet run
+
+# In another PowerShell window, run the tests:
+
+#     dotnet run --project .\Test\Test.fsproj
