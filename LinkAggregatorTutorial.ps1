@@ -33,11 +33,27 @@
 # Thus the tutorial can always be validated to make sure that the steps are working properly by running the source file.
 # Feel free to run the source file before going through the tutorial to verify that the tutorial works on your system.
 #
-# If you decide to run the source file, change the line that looks like the following:
+# Here are the steps that you can run to test the source file. In a PowerShell window:
+#
+#     cd C:\Temp 
+#     git clone https://github.com/dharmatech/LinkAggregatorTutorial.git
+#     cd LinkAggregatorTutorial
+
+# Edit the `LinkAggregatorTutorial.ps1` file:
+
+#     code .\LinkAggregatorTutorial.ps1
+
+# Change the line that looks like the following:
 #
 #     cd C:\Users\dharm\Dropbox\Documents\VisualStudio\LinkAggregatorTutorial
 #
-# to some directory on your system that you want the resulting project to be located in.
+# to some directory on your system that you want the resulting project to be located in. 
+
+# Run the source file:
+#
+#     .\LinkAggregatorTutorial.ps1
+
+# This currently takes around 2 minutes to complete on my system.
 
 # IGNORE-START
 # Set-PSDebug -Trace 0
