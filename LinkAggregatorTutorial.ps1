@@ -1301,10 +1301,151 @@ index 320174c..a52f0a9 100644
 
     # dotnet run --project .\Test\Test.fsproj
 
+# Remove old unit tests file
+
+    Remove-Item .\Test\Program.fs
+
 # Create the unit tests file
 
+@"
+diff --git a/Test/Program.fs b/Test/Program.fs
+new file mode 100644
+index 0000000..9f0e757
+--- /dev/null
++++ b/Test/Program.fs
+@@ -0,0 +1,107 @@
++open System
++open canopy.runner.classic
++open canopy.configuration
++open canopy.classic
++
++canopy.configuration.chromeDir <- System.AppContext.BaseDirectory
++
++start chrome
++
++"add user linus" &&& fun _ ->
++
++    url "http://localhost:5000/Identity/Account/Register"
++
++    "#Input_UserName"           << "linus"
++
++    "#Input_Email"              << "linus@linux.org"
++
++    "#Input_Password"           << "Secret123!"
++
++    "#Input_ConfirmPassword"    << "Secret123!"
++    
++    click "/html/body/div/main/div/div[1]/form/button"
++
++    click "Click here to confirm your account"
++
++    sleep 3
++
++"add user guy" &&& fun _ ->
++
++    url "http://localhost:5000/Identity/Account/Register"
++
++    sleep 3
++
++    "#Input_UserName"           << "guy"
++
++    "#Input_Email"              << "guy@symbolics.com"
++
++    "#Input_Password"           << "Secret123!"
++
++    "#Input_ConfirmPassword"    << "Secret123!"
++
++    click "/html/body/div/main/div/div[1]/form/button"
++
++    click "Click here to confirm your account"
++
++"login linus" &&& fun _ ->
++
++    url "http://localhost:5000/Identity/Account/Login"
++
++    "#Input_UserName"   << "linus"
++
++    "#Input_Password"   << "Secret123!"
++
++    click "Log in"
++
++    sleep 3
++
++"create link linux" &&& fun _ ->
++
++    url "http://localhost:5000/Links/Create"
++
++    "#Link_Title" << "Linux"
++
++    "#Link_Url" << "https://www.linux.org"
++
++    click "Create"
++
++    "/html/body/div/main/table/tbody/tr/td[2]/a" == "Linux"
++
++"login guy" &&& fun _ ->
++
++    url "http://localhost:5000/Identity/Account/Login"
++
++    "#Input_UserName"   << "guy"
++
++    "#Input_Password"   << "Secret123!"
++
++    click "Log in"
++
++    sleep 3
++
++"create link symbolics" &&& fun _ ->
++
++    url "http://localhost:5000/Links/Create"
++
++    "#Link_Title" << "Symbolics"
++
++    "#Link_Url" << "https://www.symbolics.com"
++
++    click "Create"
++
++    "/html/body/div/main/table/tbody/tr[2]/td[2]/a" == "Symbolics"
++
++"take screenshot" &&& fun _ ->
++
++    resize (850, 450)
++    
++    screenshot "." "screenshot-links" |> ignore
++
++[<EntryPoint>]
++let main args =
++    
++    run()
++
++    quit()
++
++    0
 
+"@ | git apply --whitespace=nowarn
 
+    git add . ; git commit --message 'Add tests'
+
+# Turn off https redirection
+
+@"
+diff --git a/Startup.cs b/Startup.cs
+index 933dba4..d2731c1 100644
+--- a/Startup.cs
++++ b/Startup.cs
+@@ -51,7 +51,7 @@ namespace LinkAggregator
+                 app.UseHsts();
+             }
+ 
+-            app.UseHttpsRedirection();
++            //app.UseHttpsRedirection();
+             app.UseStaticFiles();
+ 
+             app.UseRouting();
+
+"@ | git apply --whitespace=nowarn
+
+    git add . ; git commit --message 'Turn off https redirection'
 
 
 
