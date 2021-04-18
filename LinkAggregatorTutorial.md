@@ -1196,6 +1196,97 @@ index 320174c..a52f0a9 100644
 ```
 
     git add . ; git commit --message 'Pages\Links\Index.cshtml - indicate if user voted'
+
+----------------------------------------------------------------------
+
+# Editing links
+
+Some link aggregation sites do not allow users to edit links after they've been submitted.
+Let's set this up now.
+
+Let's make it so that POST submissions for editing are ignored:
+
+```diff 
+diff --git a/Pages/Links/Edit.cshtml.cs b/Pages/Links/Edit.cshtml.cs
+index 5b66d5f..e1d35ee 100644
+--- a/Pages/Links/Edit.cshtml.cs
++++ b/Pages/Links/Edit.cshtml.cs
+@@ -43,6 +43,8 @@ namespace LinkAggregator.Pages.Links
+         // For more details, see https://aka.ms/RazorPagesCRUD.
+         public async Task<IActionResult> OnPostAsync()
+         {
++            return RedirectToPage("./Index");
++
+             if (!ModelState.IsValid)
+             {
+                 return Page();
+
+```
+
+With the following change, if the user access the 'Edit' endpoint, they'll be redirected to the index page:
+
+```diff 
+diff --git a/Pages/Links/Edit.cshtml.cs b/Pages/Links/Edit.cshtml.cs
+index 5b66d5f..443a79a 100644
+--- a/Pages/Links/Edit.cshtml.cs
++++ b/Pages/Links/Edit.cshtml.cs
+@@ -25,6 +25,8 @@ namespace LinkAggregator.Pages.Links
+ 
+         public async Task<IActionResult> OnGetAsync(int? id)
+         {
++            return RedirectToPage("./Index");
++
+             if (id == null)
+             {
+                 return NotFound();
+
+```
+
+Finally, let's remove the 'Edit' link
+
+```diff 
+diff --git a/Pages/Links/Index.cshtml b/Pages/Links/Index.cshtml
+index a52f0a9..6c58122 100644
+--- a/Pages/Links/Index.cshtml
++++ b/Pages/Links/Index.cshtml
+@@ -59,7 +59,6 @@
+             </td>
+ 
+             <td>
+-                <a asp-page="./Edit" asp-route-id="@link.Id">Edit</a> |
+                 <a asp-page="./Details" asp-route-id="@link.Id">Details</a> |
+                 <a asp-page="./Delete" asp-route-id="@link.Id">Delete</a>
+             </td>
+
+```
+
+    git add . ; git commit --message 'Users can only submit links'
+
+----------------------------------------------------------------------
+
+Let's style the buttons on the index page
+
+```diff 
+diff --git a/Pages/Links/Index.cshtml b/Pages/Links/Index.cshtml
+index 6c58122..abebd33 100644
+--- a/Pages/Links/Index.cshtml
++++ b/Pages/Links/Index.cshtml
+@@ -59,8 +59,8 @@
+             </td>
+ 
+             <td>
+-                <a asp-page="./Details" asp-route-id="@link.Id">Details</a> |
+-                <a asp-page="./Delete" asp-route-id="@link.Id">Delete</a>
++                <a class="btn btn-info" asp-page="./Details" asp-route-id="@link.Id">Details</a>
++                <a class="btn btn-danger" asp-page="./Delete" asp-route-id="@link.Id">Delete</a>
+             </td>
+         </tr>
+ }
+
+```
+
+    git add . ; git commit --message 'Index page - style buttons'
+
 ----------------------------------------------------------------------
 
 # Test the project with Canopy
@@ -1368,6 +1459,10 @@ In one PowerShell window, run the LinkAggregator app:
 In another PowerShell window, run the tests:
 
     dotnet run --project .\Test\Test.fsproj
+
+----------------------------------------------------------------------
+
+
 
 
 

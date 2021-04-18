@@ -1384,16 +1384,30 @@ index a52f0a9..6c58122 100644
 
     git add . ; git commit --message 'Users can only submit links'
 
+# ----------------------------------------------------------------------
 
+# Let's style the buttons on the index page
 
+@"
+diff --git a/Pages/Links/Index.cshtml b/Pages/Links/Index.cshtml
+index 6c58122..abebd33 100644
+--- a/Pages/Links/Index.cshtml
++++ b/Pages/Links/Index.cshtml
+@@ -59,8 +59,8 @@
+             </td>
+ 
+             <td>
+-                <a asp-page="./Details" asp-route-id="@link.Id">Details</a> |
+-                <a asp-page="./Delete" asp-route-id="@link.Id">Delete</a>
++                <a class="btn btn-info" asp-page="./Details" asp-route-id="@link.Id">Details</a>
++                <a class="btn btn-danger" asp-page="./Delete" asp-route-id="@link.Id">Delete</a>
+             </td>
+         </tr>
+ }
 
+"@ | git apply --whitespace=nowarn
 
-
-
-
-
-
-
+    git add . ; git commit --message 'Index page - style buttons'
 
 # ----------------------------------------------------------------------
 
@@ -1619,3 +1633,6 @@ Copy-Item .\screenshot-links.jpg ..
 # In another PowerShell window, run the tests:
 
 #     dotnet run --project .\Test\Test.fsproj
+
+# ----------------------------------------------------------------------
+
