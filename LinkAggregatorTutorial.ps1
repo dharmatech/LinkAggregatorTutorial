@@ -1411,6 +1411,29 @@ index 6c58122..abebd33 100644
 
 # ----------------------------------------------------------------------
 
+# Let's also style the `Create New` link
+
+@"
+diff --git a/Pages/Links/Index.cshtml b/Pages/Links/Index.cshtml
+index abebd33..21b910e 100644
+--- a/Pages/Links/Index.cshtml
++++ b/Pages/Links/Index.cshtml
+@@ -8,7 +8,7 @@
+ <h1>Index</h1>
+ 
+ <p>
+-    <a asp-page="Create">Create New</a>
++    <a class="btn btn-primary" asp-page="Create">Create New</a>
+ </p>
+ <table class="table">
+     <thead>
+
+"@ | git apply --whitespace=nowarn
+
+    git add . ; git commit --message 'Style `Create New` link'
+
+# ----------------------------------------------------------------------
+
 # # Test the project with Canopy
 
 # Create the test project
