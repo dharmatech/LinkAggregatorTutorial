@@ -1551,36 +1551,12 @@ index cfc7c0f..d2d246c 100644
 
 ----------------------------------------------------------------------
 
-Change encoding of `_Layout.cshtml`:
+Change encoding of `.\Pages\_ViewImports.cshtml`:
 
     (Get-Content .\Pages\_ViewImports.cshtml) | Set-Content .\Pages\_ViewImports.cshtml
 
     git add . ; git commit --message 'encoding'
 ----------------------------------------------------------------------
-
-@"
-diff --git a/Pages/_ViewImports.cshtml b/Pages/_ViewImports.cshtml
-index 6e00898..071266f 100644
---- a/Pages/_ViewImports.cshtml
-+++ b/Pages/_ViewImports.cshtml
-@@ -1,5 +1,12 @@
- ﻿@using Microsoft.AspNetCore.Identity
- @using LinkAggregator
- @using LinkAggregator.Data
-+
-+@using Microsoft.AspNetCore.Authorization
-+@using LinkAggregator.Models
-+@using LinkAggregator.Authorization
-+
-+@inject IAuthorizationService AuthorizationService
-+
- @namespace LinkAggregator.Pages
- @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
-"@ | git apply --whitespace=nowarn
-
-
-
-
 
 ```diff 
 diff --git a/Pages/_ViewImports.cshtml b/Pages/_ViewImports.cshtml
