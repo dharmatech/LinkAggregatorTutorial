@@ -1434,6 +1434,339 @@ index abebd33..21b910e 100644
 
 # ----------------------------------------------------------------------
 
+# # Authorization
+
+# Currently, a user can delete a link that was submitted by another user. Let's address this.
+
+@"
+diff --git a/Authorization/LinkOperations.cs b/Authorization/LinkOperations.cs
+new file mode 100644
+index 0000000..77cdb2b
+--- /dev/null
++++ b/Authorization/LinkOperations.cs
+@@ -0,0 +1,19 @@
++using Microsoft.AspNetCore.Authorization.Infrastructure;
++using System;
++using System.Collections.Generic;
++using System.Linq;
++using System.Threading.Tasks;
++
++namespace LinkAggregator.Authorization
++{
++    public class Constants
++    {
++        public static readonly string DeleteOperationName = "Delete";
++    }
++
++    public static class LinkOperations
++    {
++        public static OperationAuthorizationRequirement Delete =
++            new OperationAuthorizationRequirement() { Name = Constants.DeleteOperationName };
++    }
++}
+
+"@ | git apply --whitespace=nowarn
+
+# ----------------------------------------------------------------------
+
+@"
+diff --git a/Authorization/LinkOwnerAuthorizationHandler.cs b/Authorization/LinkOwnerAuthorizationHandler.cs
+new file mode 100644
+index 0000000..33a4286
+--- /dev/null
++++ b/Authorization/LinkOwnerAuthorizationHandler.cs
+@@ -0,0 +1,35 @@
++using LinkAggregator.Models;
++using Microsoft.AspNetCore.Authorization;
++using Microsoft.AspNetCore.Authorization.Infrastructure;
++using Microsoft.AspNetCore.Identity;
++using System;
++using System.Collections.Generic;
++using System.Linq;
++using System.Threading.Tasks;
++
++namespace LinkAggregator.Authorization
++{
++    public class LinkOwnerAuthorizationHandler : AuthorizationHandler<OperationAuthorizationRequirement, Link>
++    {
++        UserManager<IdentityUser> _userManager;
++
++        public LinkOwnerAuthorizationHandler(UserManager<IdentityUser> userManager) => _userManager = userManager;
++
++        protected override Task HandleRequirementAsync(
++            AuthorizationHandlerContext context,
++            OperationAuthorizationRequirement requirement,
++            Link resource)
++        {
++            if (context.User == null || resource == null)
++                return Task.CompletedTask;
++
++            if (requirement.Name != Constants.DeleteOperationName)
++                return Task.CompletedTask;
++
++            if (resource.UserId == _userManager.GetUserId(context.User))
++                context.Succeed(requirement);
++
++            return Task.CompletedTask;
++        }
++    }
++}
+
+"@ | git apply --whitespace=nowarn
+
+# ----------------------------------------------------------------------
+
+@"
+diff --git a/Startup.cs b/Startup.cs
+index d2731c1..92492f4 100644
+--- a/Startup.cs
++++ b/Startup.cs
+@@ -12,6 +12,8 @@ using LinkAggregator.Data;
+ using Microsoft.Extensions.Configuration;
+ using Microsoft.Extensions.DependencyInjection;
+ using Microsoft.Extensions.Hosting;
++using Microsoft.AspNetCore.Authorization;
++using LinkAggregator.Authorization;
+ 
+ namespace LinkAggregator
+ {
+@@ -30,10 +32,24 @@ namespace LinkAggregator
+             services.AddDbContext<ApplicationDbContext>(options =>
+                 options.UseSqlServer(
+                     Configuration.GetConnectionString("DefaultConnection")));
++
+             services.AddDatabaseDeveloperPageExceptionFilter();
++
+             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
++                .AddRoles<IdentityRole>()
+                 .AddEntityFrameworkStores<ApplicationDbContext>();
++
+             services.AddRazorPages();
++
++            services.AddAuthorization(options => 
++            {
++                options.FallbackPolicy = 
++                    new AuthorizationPolicyBuilder()
++                        .RequireAuthenticatedUser()
++                        .Build();
++            });
++
++            services.AddScoped<IAuthorizationHandler, LinkOwnerAuthorizationHandler>();
+         }
+ 
+         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+
+"@ | git apply --whitespace=nowarn
+
+    git add . ; git commit --message 'Authorization - Part 1'
+
+# ----------------------------------------------------------------------
+
+@"
+diff --git a/Pages/Links/Delete.cshtml.cs b/Pages/Links/Delete.cshtml.cs
+index 2a2cb32..7ffcee8 100644
+--- a/Pages/Links/Delete.cshtml.cs
++++ b/Pages/Links/Delete.cshtml.cs
+@@ -7,16 +7,27 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
+ using Microsoft.EntityFrameworkCore;
+ using LinkAggregator.Data;
+ using LinkAggregator.Models;
++using Microsoft.AspNetCore.Authorization;
++using Microsoft.AspNetCore.Identity;
++using LinkAggregator.Authorization;
+ 
+ namespace LinkAggregator.Pages.Links
+ {
+     public class DeleteModel : PageModel
+     {
+-        private readonly LinkAggregator.Data.ApplicationDbContext _context;
++        private readonly ApplicationDbContext _context;
++        private IAuthorizationService AuthorizationService { get; }
++        private UserManager<IdentityUser> UserManager { get; }
+ 
+-        public DeleteModel(LinkAggregator.Data.ApplicationDbContext context)
++        public DeleteModel(
++            ApplicationDbContext context,
++            IAuthorizationService authorizationService,
++            UserManager<IdentityUser> userManager
++            )
+         {
+             _context = context;
++            AuthorizationService = authorizationService;
++            UserManager = userManager;
+         }
+ 
+         [BindProperty]
+
+"@ | git apply --whitespace=nowarn
+
+    git add . ; git commit --message 'Authorization - Part 2'
+
+# ----------------------------------------------------------------------
+
+# ## Authorization - Delete - POST
+
+# With the following change, the POST call of the `Delete` endpoint will not result in a link being deleted if the current user did not create the link.
+# If you attempt to remove a link that you are not authorized for, you will now get an `Access denied` message.
+
+@"
+diff --git a/Pages/Links/Delete.cshtml.cs b/Pages/Links/Delete.cshtml.cs
+index 7ffcee8..cfc7c0f 100644
+--- a/Pages/Links/Delete.cshtml.cs
++++ b/Pages/Links/Delete.cshtml.cs
+@@ -58,12 +58,18 @@ namespace LinkAggregator.Pages.Links
+ 
+             Link = await _context.Link.FindAsync(id);
+ 
+-            if (Link != null)
+-            {
+-                _context.Link.Remove(Link);
+-                await _context.SaveChangesAsync();
+-            }
++            if (Link == null)
++                return NotFound();
++
++            var is_authorized = await AuthorizationService.AuthorizeAsync(User, Link, LinkOperations.Delete);
++
++            if (is_authorized.Succeeded == false)
++                return Forbid();
++                        
++            _context.Link.Remove(Link);
+ 
++            await _context.SaveChangesAsync();
++            
+             return RedirectToPage("./Index");
+         }
+     }
+
+"@ | git apply --whitespace=nowarn
+
+    git add . ; git commit --message 'Authorization - Part 3'
+
+# ----------------------------------------------------------------------
+
+# ## Authorization - Delete - GET
+
+# With the following change, if the current user presses the `Delete` button for a link they didn't create, they will immediately get an `Access denied` message.
+
+@"
+diff --git a/Pages/Links/Delete.cshtml.cs b/Pages/Links/Delete.cshtml.cs
+index cfc7c0f..d2d246c 100644
+--- a/Pages/Links/Delete.cshtml.cs
++++ b/Pages/Links/Delete.cshtml.cs
+@@ -46,6 +46,12 @@ namespace LinkAggregator.Pages.Links
+             {
+                 return NotFound();
+             }
++
++            var is_authorized = await AuthorizationService.AuthorizeAsync(User, Link, LinkOperations.Delete);
++
++            if (is_authorized.Succeeded == false)
++                return Forbid();
++
+             return Page();
+         }
+ 
+"@ | git apply --whitespace=nowarn
+
+    git add . ; git commit --message 'Authorization - Part 4'
+
+# ----------------------------------------------------------------------
+
+# Change encoding of `.\Pages\_ViewImports.cshtml`:
+
+    (Get-Content .\Pages\_ViewImports.cshtml) | Set-Content .\Pages\_ViewImports.cshtml
+
+    git add . ; git commit --message 'encoding'
+# ----------------------------------------------------------------------
+
+@"
+diff --git a/Pages/_ViewImports.cshtml b/Pages/_ViewImports.cshtml
+index 6e00898..071266f 100644
+--- a/Pages/_ViewImports.cshtml
++++ b/Pages/_ViewImports.cshtml
+@@ -1,5 +1,12 @@
+ @using Microsoft.AspNetCore.Identity
+ @using LinkAggregator
+ @using LinkAggregator.Data
++
++@using Microsoft.AspNetCore.Authorization
++@using LinkAggregator.Models
++@using LinkAggregator.Authorization
++
++@inject IAuthorizationService AuthorizationService
++
+ @namespace LinkAggregator.Pages
+ @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+"@ | git apply --whitespace=nowarn
+
+    git add . ; git commit --message 'Authorization - Part 5'
+
+# ----------------------------------------------------------------------
+
+@"
+diff --git a/Pages/Links/Index.cshtml.cs b/Pages/Links/Index.cshtml.cs
+index 0d52386..6ee410b 100644
+--- a/Pages/Links/Index.cshtml.cs
++++ b/Pages/Links/Index.cshtml.cs
+@@ -8,17 +8,23 @@ using Microsoft.EntityFrameworkCore;
+ using LinkAggregator.Data;
+ using LinkAggregator.Models;
+ using Microsoft.AspNetCore.Identity;
++using Microsoft.AspNetCore.Authorization;
+ 
+ namespace LinkAggregator.Pages.Links
+ {
+     public class IndexModel : PageModel
+     {
+         private readonly ApplicationDbContext _context;
++        private IAuthorizationService AuthorizationService { get; }
+         private UserManager<IdentityUser> UserManager { get; }
+ 
+-        public IndexModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
++        public IndexModel(
++            ApplicationDbContext context,
++            IAuthorizationService authorizationService,
++            UserManager<IdentityUser> userManager)
+         {
+             _context = context;
++            AuthorizationService = authorizationService;
+             UserManager = userManager;
+         }
+ 
+"@ | git apply --whitespace=nowarn
+
+    git add . ; git commit --message 'Authorization - Part 6'
+
+# ----------------------------------------------------------------------
+
+# Only display the delete button for links that the user created
+
+@"
+diff --git a/Pages/Links/Index.cshtml b/Pages/Links/Index.cshtml
+index 21b910e..0e43d10 100644
+--- a/Pages/Links/Index.cshtml
++++ b/Pages/Links/Index.cshtml
+@@ -60,7 +60,11 @@
+ 
+             <td>
+                 <a class="btn btn-info" asp-page="./Details" asp-route-id="@link.Id">Details</a>
+-                <a class="btn btn-danger" asp-page="./Delete" asp-route-id="@link.Id">Delete</a>
++
++                @if ((await AuthorizationService.AuthorizeAsync(User, link, LinkOperations.Delete)).Succeeded)
++                {
++                    <a class="btn btn-danger" asp-page="./Delete" asp-route-id="@link.Id">Delete</a>
++                }
+             </td>
+         </tr>
+ }
+
+"@ | git apply --whitespace=nowarn
+
+    git add . ; git commit --message 'Authorization - Part 7'
+
+# ----------------------------------------------------------------------
+
 # # Test the project with Canopy
 
 # Create the test project
