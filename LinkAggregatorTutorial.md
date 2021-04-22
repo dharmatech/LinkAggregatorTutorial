@@ -1645,6 +1645,304 @@ index 21b910e..0e43d10 100644
 
 ----------------------------------------------------------------------
 
+Details page - UserId
+
+```diff 
+diff --git a/Pages/Links/Details.cshtml b/Pages/Links/Details.cshtml
+index 37ade6b..cdf7b68 100644
+--- a/Pages/Links/Details.cshtml
++++ b/Pages/Links/Details.cshtml
+@@ -11,12 +11,6 @@
+     <h4>Link</h4>
+     <hr />
+     <dl class="row">
+-        <dt class="col-sm-2">
+-            @Html.DisplayNameFor(model => model.Link.UserId)
+-        </dt>
+-        <dd class="col-sm-10">
+-            @Html.DisplayFor(model => model.Link.UserId)
+-        </dd>
+         <dt class="col-sm-2">
+             @Html.DisplayNameFor(model => model.Link.Title)
+         </dt>
+```
+
+    git add . ; git commit --message 'Details - UserId'
+
+----------------------------------------------------------------------
+
+Link User navigation property
+
+```diff 
+diff --git a/Models/Link.cs b/Models/Link.cs
+index 67bee47..629a2a1 100644
+--- a/Models/Link.cs
++++ b/Models/Link.cs
+@@ -1,6 +1,8 @@
++using Microsoft.AspNetCore.Identity;
+ using System;
+ using System.Collections.Generic;
+ using System.ComponentModel.DataAnnotations;
++using System.ComponentModel.DataAnnotations.Schema;
+ using System.Linq;
+ using System.Threading.Tasks;
+ 
+@@ -20,6 +22,9 @@ namespace LinkAggregator.Models
+         [DataType(DataType.Date)]
+         public DateTime DateTime { get; set; }
+ 
++        [ForeignKey("UserId")]
++        public IdentityUser User { get; set; }
++
+         public List<Vote> Votes { get; set; }
+ 
+         public int Score() => Votes.Sum(vote => vote.Score);
+
+```
+
+    git add . ; git commit --message 'Link User navigation property'
+
+----------------------------------------------------------------------
+
+Include the `Link` `User` navigation property on the Details page backend.
+
+```diff 
+diff --git a/Pages/Links/Details.cshtml.cs b/Pages/Links/Details.cshtml.cs
+index 8714573..0f01ab5 100644
+--- a/Pages/Links/Details.cshtml.cs
++++ b/Pages/Links/Details.cshtml.cs
+@@ -28,7 +28,9 @@ namespace LinkAggregator.Pages.Links
+                 return NotFound();
+             }
+ 
+-            Link = await _context.Link.FirstOrDefaultAsync(m => m.Id == id);
++            Link = await _context.Link
++                .Include(link => link.User)
++                .FirstOrDefaultAsync(m => m.Id == id);
+ 
+             if (Link == null)
+             {
+```
+
+    git add . ; git commit --message '.Include(link => link.User)'
+
+----------------------------------------------------------------------
+
+Show the username on the Details page
+
+```diff 
+diff --git a/Pages/Links/Details.cshtml b/Pages/Links/Details.cshtml
+index cdf7b68..b2c0d8e 100644
+--- a/Pages/Links/Details.cshtml
++++ b/Pages/Links/Details.cshtml
+@@ -23,6 +23,12 @@
+         <dd class="col-sm-10">
+             @Html.DisplayFor(model => model.Link.Url)
+         </dd>
++        <dt class="col-sm-2">
++            User Name
++        </dt>
++        <dd class="col-sm-10">
++            @Model.Link.User
++        </dd>
+         <dt class="col-sm-2">
+             @Html.DisplayNameFor(model => model.Link.DateTime)
+         </dt>
+```
+
+    git add . ; git commit --message 'Show username on Details page'
+
+----------------------------------------------------------------------
+
+On the Details page, show the date and time for the `DateTime` field.
+
+```diff 
+diff --git a/Pages/Links/Details.cshtml b/Pages/Links/Details.cshtml
+index b2c0d8e..aefa538 100644
+--- a/Pages/Links/Details.cshtml
++++ b/Pages/Links/Details.cshtml
+@@ -33,7 +33,7 @@
+             @Html.DisplayNameFor(model => model.Link.DateTime)
+         </dt>
+         <dd class="col-sm-10">
+-            @Html.DisplayFor(model => model.Link.DateTime)
++            @Model.Link.DateTime
+         </dd>
+     </dl>
+ </div>
+"@ | git apply
+
+    git add . ; git commit --message 'Details - DateTime long format'
+
+----------------------------------------------------------------------
+
+    git checkout -b details-vote
+
+----------------------------------------------------------------------
+
+@"
+diff --git a/Pages/Links/Details.cshtml.cs b/Pages/Links/Details.cshtml.cs
+index 0f01ab5..ea4f9c7 100644
+--- a/Pages/Links/Details.cshtml.cs
++++ b/Pages/Links/Details.cshtml.cs
+@@ -7,18 +7,24 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
+ using Microsoft.EntityFrameworkCore;
+ using LinkAggregator.Data;
+ using LinkAggregator.Models;
++using Microsoft.AspNetCore.Identity;
+ 
+ namespace LinkAggregator.Pages.Links
+ {
+     public class DetailsModel : PageModel
+     {
+-        private readonly LinkAggregator.Data.ApplicationDbContext _context;
++        private readonly ApplicationDbContext _context;
++        private UserManager<IdentityUser> UserManager { get; }
+ 
+-        public DetailsModel(LinkAggregator.Data.ApplicationDbContext context)
++        public DetailsModel(
++            ApplicationDbContext context,
++            UserManager<IdentityUser> userManager)
+         {
+             _context = context;
++            UserManager = userManager;
+         }
+ 
++
+         public Link Link { get; set; }
+ 
+         public async Task<IActionResult> OnGetAsync(int? id)
+"@ | git apply
+
+    git add . ; git commit --message 'Details vote - part 1'
+
+----------------------------------------------------------------------
+
+@"
+diff --git a/Pages/Links/Details.cshtml.cs b/Pages/Links/Details.cshtml.cs
+index ea4f9c7..6164a66 100644
+--- a/Pages/Links/Details.cshtml.cs
++++ b/Pages/Links/Details.cshtml.cs
+@@ -27,6 +27,8 @@ namespace LinkAggregator.Pages.Links
+ 
+         public Link Link { get; set; }
+ 
++        public string CurrentUserid() => UserManager.GetUserId(User);
++
+         public async Task<IActionResult> OnGetAsync(int? id)
+         {
+             if (id == null)
+"@ | git apply
+
+    git add . ; git commit --message 'Details vote - part 2'
+
+----------------------------------------------------------------------
+
+@"
+diff --git a/Pages/Links/Details.cshtml.cs b/Pages/Links/Details.cshtml.cs
+index 6164a66..377810c 100644
+--- a/Pages/Links/Details.cshtml.cs
++++ b/Pages/Links/Details.cshtml.cs
+@@ -46,5 +46,24 @@ namespace LinkAggregator.Pages.Links
+             }
+             return Page();
+         }
++
++        public async Task<IActionResult> OnPostVoteAsync(int id, int score)
++        {
++            if (User == null)
++                return RedirectToPage();
++
++            if (User.Identity.IsAuthenticated == false)
++                return RedirectToPage();
++
++            var link = await _context.Link
++                .Include(link => link.Votes)
++                .FirstOrDefaultAsync(link => link.Id == id);
++
++            await link.Vote(score, UserManager.GetUserId(User));
++
++            await _context.SaveChangesAsync();
++
++            return Redirect(HttpContext.Request.Headers["Referer"]);
++        }
+     }
+ }
+"@ | git apply
+
+    git add . ; git commit --message 'Details vote - part 3'
+
+----------------------------------------------------------------------
+
+@"
+diff --git a/Pages/Links/Details.cshtml.cs b/Pages/Links/Details.cshtml.cs
+index 377810c..7c45924 100644
+--- a/Pages/Links/Details.cshtml.cs
++++ b/Pages/Links/Details.cshtml.cs
+@@ -38,6 +38,7 @@ namespace LinkAggregator.Pages.Links
+ 
+             Link = await _context.Link
+                 .Include(link => link.User)
++                .Include(link => link.Votes)
+                 .FirstOrDefaultAsync(m => m.Id == id);
+ 
+             if (Link == null)
+"@ | git apply
+
+    git add . ; git commit --message 'Details vote - part 4'
+
+----------------------------------------------------------------------
+
+@"
+diff --git a/Pages/Links/Details.cshtml b/Pages/Links/Details.cshtml
+index aefa538..b212959 100644
+--- a/Pages/Links/Details.cshtml
++++ b/Pages/Links/Details.cshtml
+@@ -35,6 +35,32 @@
+         <dd class="col-sm-10">
+             @Model.Link.DateTime
+         </dd>
++
++        <dt class="col-sm-2">Score</dt>
++
++        <dd class="col-sm-10">
++
++            @if (User.Identity.IsAuthenticated)
++            {
++                <form asp-page-handler="Vote" style="display:inline" method="post">
++                    <input type="hidden" name="id" value="@Model.Link.Id" />
++                    <input type="hidden" name="score" value="1" />
++                    <button class="btn @(Model.Link.UserScore(Model.CurrentUserid()) == 1 ? "btn-primary" : "btn-secondary")">U</button>
++                </form>
++            }
++
++            @Model.Link.Score()
++
++            @if (User.Identity.IsAuthenticated)
++            {
++                <form asp-page-handler="Vote" style="display:inline" method="post">
++                    <input type="hidden" name="id" value="@Model.Link.Id" />
++                    <input type="hidden" name="score" value="-1" />
++                    <button class="btn @(Model.Link.UserScore(Model.CurrentUserid()) == -1 ? "btn-primary" : "btn-secondary")">D</button>
++                </form>
++            }
++
++        </dd>
+     </dl>
+ </div>
+ <div>
+
+"@ | git apply
+
+    git add . ; git commit --message 'Details vote - part 5'
+
+----------------------------------------------------------------------
+
+    git checkout master
+    git merge details-vote
+    
+----------------------------------------------------------------------
+
 # Test the project with Canopy
 
 Create the test project
@@ -1661,7 +1959,7 @@ Remove old unit tests file
 
 Create the unit tests file
 
-```diff 
+@"
 diff --git a/Test/Program.fs b/Test/Program.fs
 new file mode 100644
 index 0000000..9f0e757
