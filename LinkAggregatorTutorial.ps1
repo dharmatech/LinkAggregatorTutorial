@@ -1892,7 +1892,7 @@ index b2c0d8e..aefa538 100644
          </dd>
      </dl>
  </div>
-"@ | git apply
+"@ | git apply --whitespace=nowarn
 
     git add . ; git commit --message 'Details - DateTime long format'
 
@@ -1934,7 +1934,7 @@ index 0f01ab5..ea4f9c7 100644
          public Link Link { get; set; }
  
          public async Task<IActionResult> OnGetAsync(int? id)
-"@ | git apply
+"@ | git apply --whitespace=nowarn
 
     git add . ; git commit --message 'Details vote - part 1'
 
@@ -1954,7 +1954,7 @@ index ea4f9c7..6164a66 100644
          public async Task<IActionResult> OnGetAsync(int? id)
          {
              if (id == null)
-"@ | git apply
+"@ | git apply --whitespace=nowarn
 
     git add . ; git commit --message 'Details vote - part 2'
 
@@ -1990,7 +1990,7 @@ index 6164a66..377810c 100644
 +        }
      }
  }
-"@ | git apply
+"@ | git apply --whitespace=nowarn
 
     git add . ; git commit --message 'Details vote - part 3'
 
@@ -2009,7 +2009,7 @@ index 377810c..7c45924 100644
                  .FirstOrDefaultAsync(m => m.Id == id);
  
              if (Link == null)
-"@ | git apply
+"@ | git apply --whitespace=nowarn
 
     git add . ; git commit --message 'Details vote - part 4'
 
@@ -2054,7 +2054,7 @@ index aefa538..b212959 100644
  </div>
  <div>
 
-"@ | git apply
+"@ | git apply --whitespace=nowarn
 
     git add . ; git commit --message 'Details vote - part 5'
 

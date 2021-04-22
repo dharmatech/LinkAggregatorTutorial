@@ -35,6 +35,7 @@ param([switch]$gist)
 
 (Get-Content .\pass-1.ps1 -Raw) -replace   '(?sm)^@"(.*?)"@ \| git apply --whitespace=nowarn',    ('```diff $1```')    | Set-Content pass-1.ps1
 
+# (Get-Content .\pass-1.ps1 -Raw) -replace   '(?sm)^@"(.*?)"@ \| git apply',                        ('```diff $1```')    | Set-Content pass-1.ps1
 
 
 (Get-Content .\pass-1.ps1) | ForEach-Object {

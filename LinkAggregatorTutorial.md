@@ -1770,7 +1770,7 @@ index b2c0d8e..aefa538 100644
          </dd>
      </dl>
  </div>
-"@ | git apply
+```
 
     git add . ; git commit --message 'Details - DateTime long format'
 
@@ -1780,7 +1780,7 @@ index b2c0d8e..aefa538 100644
 
 ----------------------------------------------------------------------
 
-@"
+```diff 
 diff --git a/Pages/Links/Details.cshtml.cs b/Pages/Links/Details.cshtml.cs
 index 0f01ab5..ea4f9c7 100644
 --- a/Pages/Links/Details.cshtml.cs
@@ -1812,13 +1812,13 @@ index 0f01ab5..ea4f9c7 100644
          public Link Link { get; set; }
  
          public async Task<IActionResult> OnGetAsync(int? id)
-"@ | git apply
+```
 
     git add . ; git commit --message 'Details vote - part 1'
 
 ----------------------------------------------------------------------
 
-@"
+```diff 
 diff --git a/Pages/Links/Details.cshtml.cs b/Pages/Links/Details.cshtml.cs
 index ea4f9c7..6164a66 100644
 --- a/Pages/Links/Details.cshtml.cs
@@ -1832,13 +1832,13 @@ index ea4f9c7..6164a66 100644
          public async Task<IActionResult> OnGetAsync(int? id)
          {
              if (id == null)
-"@ | git apply
+```
 
     git add . ; git commit --message 'Details vote - part 2'
 
 ----------------------------------------------------------------------
 
-@"
+```diff 
 diff --git a/Pages/Links/Details.cshtml.cs b/Pages/Links/Details.cshtml.cs
 index 6164a66..377810c 100644
 --- a/Pages/Links/Details.cshtml.cs
@@ -1868,13 +1868,13 @@ index 6164a66..377810c 100644
 +        }
      }
  }
-"@ | git apply
+```
 
     git add . ; git commit --message 'Details vote - part 3'
 
 ----------------------------------------------------------------------
 
-@"
+```diff 
 diff --git a/Pages/Links/Details.cshtml.cs b/Pages/Links/Details.cshtml.cs
 index 377810c..7c45924 100644
 --- a/Pages/Links/Details.cshtml.cs
@@ -1887,13 +1887,13 @@ index 377810c..7c45924 100644
                  .FirstOrDefaultAsync(m => m.Id == id);
  
              if (Link == null)
-"@ | git apply
+```
 
     git add . ; git commit --message 'Details vote - part 4'
 
 ----------------------------------------------------------------------
 
-@"
+```diff 
 diff --git a/Pages/Links/Details.cshtml b/Pages/Links/Details.cshtml
 index aefa538..b212959 100644
 --- a/Pages/Links/Details.cshtml
@@ -1932,7 +1932,7 @@ index aefa538..b212959 100644
  </div>
  <div>
 
-"@ | git apply
+```
 
     git add . ; git commit --message 'Details vote - part 5'
 
@@ -1959,7 +1959,7 @@ Remove old unit tests file
 
 Create the unit tests file
 
-@"
+```diff 
 diff --git a/Test/Program.fs b/Test/Program.fs
 new file mode 100644
 index 0000000..9f0e757
