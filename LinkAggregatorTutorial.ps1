@@ -2647,22 +2647,13 @@ index 493e594..be8aa9b 100644
 
 # ----------------------------------------------------------------------
 
+    git checkout master
 
+    git merge comments
 
+# ----------------------------------------------------------------------    
 
-
-
-
-
-# ----------------------------------------------------------------------
-
-    rm .\Data\Migrations
-    dotnet ef database drop -f
-    dotnet ef migrations add Initial
-    dotnet ef database update
-
-    dotnet ef migrations add Replies
-    dotnet ef database update
+    git checkout -b nested-comments
 
 # ----------------------------------------------------------------------
 

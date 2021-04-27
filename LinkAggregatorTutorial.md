@@ -1834,6 +1834,7 @@ index ea4f9c7..6164a66 100644
              if (id == null)
 ```
 
+
     git add . ; git commit --message 'Details vote - part 2'
 
 ----------------------------------------------------------------------
@@ -1940,7 +1941,597 @@ index aefa538..b212959 100644
 
     git checkout master
     git merge details-vote
+
+----------------------------------------------------------------------
+
+# Comments
+
+----------------------------------------------------------------------
+
+    git checkout -b comments
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Models/Comment.cs b/Models/Comment.cs
+new file mode 100644
+index 0000000..5a261f7
+--- /dev/null
++++ b/Models/Comment.cs
+@@ -0,0 +1,26 @@
++using Microsoft.AspNetCore.Identity;
++using System;
++using System.Collections.Generic;
++using System.ComponentModel.DataAnnotations.Schema;
++using System.Linq;
++using System.Threading.Tasks;
++
++namespace LinkAggregator.Models
++{
++    public class Comment
++    {
++        public int Id { get; set; }
++
++        public int LinkId { get; set; }
++        public Link Link { get; set; }
++
++        public string Text { get; set; }
++        public DateTime DateTime { get; set; }
++
++        public string UserId { get; set; }
++        [ForeignKey("UserId")]
++        public IdentityUser User { get; set; }
++
++        public List<CommentVote> Votes { get; set; }
++    }
++}
+```
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Models/CommentVote.cs b/Models/CommentVote.cs
+new file mode 100644
+index 0000000..fcb1ab7
+--- /dev/null
++++ b/Models/CommentVote.cs
+@@ -0,0 +1,24 @@
++using Microsoft.AspNetCore.Identity;
++using System;
++using System.Collections.Generic;
++using System.ComponentModel.DataAnnotations.Schema;
++using System.Linq;
++using System.Threading.Tasks;
++
++namespace LinkAggregator.Models
++{
++    public class CommentVote
++    {
++        public int Id { get; set; }
++
++        public string UserId { get; set; }
++        [ForeignKey("UserId")]
++        public IdentityUser User { get; set; }
++
++        public int CommentId { get; set; }
++        public Comment Comment { get; set; }
++
++        public int Score { get; set; }
++        public DateTime DateTime { get; set; }
++    }
++}
+```
+
+    git add . ; git commit --message 'Comment.cs and CommentVote.cs'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Data/ApplicationDbContext.cs b/Data/ApplicationDbContext.cs
+index 6758500..3521bde 100644
+--- a/Data/ApplicationDbContext.cs
++++ b/Data/ApplicationDbContext.cs
+@@ -16,5 +16,9 @@ namespace LinkAggregator.Data
+         public DbSet<Link> Link { get; set; }
+ 
+         public DbSet<Vote> Vote { get; set; }
++
++        public DbSet<Comment> Comment { get; set; }
++
++        public DbSet<CommentVote> CommentVote { get; set; }
+     }
+ }
+```
+
+    git add . ; git commit --message 'Update ApplicationDbContext'
+
+----------------------------------------------------------------------
+
+    dotnet ef migrations add Comments
+    dotnet ef database update
+
+    git add . ; git commit --message 'Comments migration'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Models/Link.cs b/Models/Link.cs
+index 629a2a1..d99b803 100644
+--- a/Models/Link.cs
++++ b/Models/Link.cs
+@@ -59,5 +59,7 @@ namespace LinkAggregator.Models
+                 vote.Score = vote.Score == score ? 0 : score;
+             }
+         }
++
++        public List<Comment> Comments { get; set; }
+     }
+ }
+```
+
+    git add . ; git commit --message 'Link - Comments navigation property'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Models/Link.cs b/Models/Link.cs
+index d99b803..ff1d0fc 100644
+--- a/Models/Link.cs
++++ b/Models/Link.cs
+@@ -61,5 +61,18 @@ namespace LinkAggregator.Models
+         }
+ 
+         public List<Comment> Comments { get; set; }
++
++        public async Task AddComment(string text, string commenterUserId)
++        {
++            var comment = new Comment()
++            {
++                UserId = commenterUserId,
++                LinkId = Id,
++                Text = text,
++                DateTime = DateTime.Now
++            };
++
++            Comments.Add(comment);
++        }
+     }
+ }
+```
+
+    git add . ; git commit --message 'Link - AddComment method'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Pages/Links/Details.cshtml.cs b/Pages/Links/Details.cshtml.cs
+index 7c45924..8656173 100644
+--- a/Pages/Links/Details.cshtml.cs
++++ b/Pages/Links/Details.cshtml.cs
+@@ -39,6 +39,7 @@ namespace LinkAggregator.Pages.Links
+             Link = await _context.Link
+                 .Include(link => link.User)
+                 .Include(link => link.Votes)
++                .Include(link => link.Comments)
+                 .FirstOrDefaultAsync(m => m.Id == id);
+ 
+             if (Link == null)
+```
+
+    git add . ; git commit --message 'Details.cshtml.cs - .Include(link => link.Comments)'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Pages/Links/Details.cshtml.cs b/Pages/Links/Details.cshtml.cs
+index 8656173..9909d84 100644
+--- a/Pages/Links/Details.cshtml.cs
++++ b/Pages/Links/Details.cshtml.cs
+@@ -27,7 +27,7 @@ namespace LinkAggregator.Pages.Links
+ 
+         public Link Link { get; set; }
+ 
+-        public string CurrentUserid() => UserManager.GetUserId(User);
++        public string CurrentUserId() => UserManager.GetUserId(User);
+ 
+         public async Task<IActionResult> OnGetAsync(int? id)
+         {
+```
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Pages/Links/Details.cshtml b/Pages/Links/Details.cshtml
+index b212959..6587477 100644
+--- a/Pages/Links/Details.cshtml
++++ b/Pages/Links/Details.cshtml
+@@ -45,7 +45,7 @@
+                 <form asp-page-handler="Vote" style="display:inline" method="post">
+                     <input type="hidden" name="id" value="@Model.Link.Id" />
+                     <input type="hidden" name="score" value="1" />
+-                    <button class="btn @(Model.Link.UserScore(Model.CurrentUserid()) == 1 ? "btn-primary" : "btn-secondary")">U</button>
++                    <button class="btn @(Model.Link.UserScore(Model.CurrentUserId()) == 1 ? "btn-primary" : "btn-secondary")">U</button>
+                 </form>
+             }
+ 
+@@ -56,7 +56,7 @@
+                 <form asp-page-handler="Vote" style="display:inline" method="post">
+                     <input type="hidden" name="id" value="@Model.Link.Id" />
+                     <input type="hidden" name="score" value="-1" />
+-                    <button class="btn @(Model.Link.UserScore(Model.CurrentUserid()) == -1 ? "btn-primary" : "btn-secondary")">D</button>
++                    <button class="btn @(Model.Link.UserScore(Model.CurrentUserId()) == -1 ? "btn-primary" : "btn-secondary")">D</button>
+                 </form>
+             }
+ 
+```
     
+    git add . ; git commit --message 'Fix method name'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Pages/Links/Details.cshtml.cs b/Pages/Links/Details.cshtml.cs
+index 9909d84..0609a1f 100644
+--- a/Pages/Links/Details.cshtml.cs
++++ b/Pages/Links/Details.cshtml.cs
+@@ -67,5 +67,24 @@ namespace LinkAggregator.Pages.Links
+ 
+             return Redirect(HttpContext.Request.Headers["Referer"]);
+         }
++
++        public async Task<IActionResult> OnPostAddCommentAsync(int id, string text)
++        {
++            if (User == null)
++                return Redirect(HttpContext.Request.Headers["Referer"]);
++
++            if (User.Identity.IsAuthenticated == false)
++                return Redirect(HttpContext.Request.Headers["Referer"]);
++
++            var link = await _context.Link
++                .Include(link => link.Comments)
++                .FirstOrDefaultAsync(link => link.Id == id);
++
++            await link.AddComment(text, CurrentUserId());
++
++            await _context.SaveChangesAsync();
++
++            return Redirect(HttpContext.Request.Headers["Referer"]);
++        }
+     }
+ }
+```
+
+    git add . ; git commit --message 'OnPostAddCommentAsync'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Pages/Links/Details.cshtml b/Pages/Links/Details.cshtml
+index 6587477..4c14f76 100644
+--- a/Pages/Links/Details.cshtml
++++ b/Pages/Links/Details.cshtml
+@@ -63,6 +63,22 @@
+         </dd>
+     </dl>
+ </div>
++
++<div>
++    <h1>Comments</h1>
++
++    <form asp-page-handler="AddComment" method="post">
++
++        <div class="form-group">
++            <input type="hidden" name="id" value="@Model.Link.Id" />
++            <textarea name="text"></textarea>
++        </div>
++
++        <button class="btn btn-primary" type="submit">Add Comment</button>
++
++    </form>
++</div>
++
+ <div>
+     <a asp-page="./Edit" asp-route-id="@Model.Link.Id">Edit</a> |
+     <a asp-page="./Index">Back to List</a>
+```
+
+    git add . ; git commit --message 'Details - Add form for adding comments'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Pages/Links/Details.cshtml b/Pages/Links/Details.cshtml  
+index 4c14f76..9531069 100644
+--- a/Pages/Links/Details.cshtml
++++ b/Pages/Links/Details.cshtml
+@@ -5,6 +5,24 @@
+     ViewData["Title"] = "Details";
+ }
+ 
++@{ 
++    async Task Template(IList<Comment> comments)
++    {
++        foreach (var comment in comments)
++        {
++            <ul>
++                <li>
++                    @comment.User
++
++                    <div>
++                        @comment.Text
++                    </div>
++                </li>
++            </ul>
++        }
++    }
++}
++
+ <h1>Details</h1>
+ 
+ <div>
+```
+
+    git add . ; git commit --message 'Add template for comments'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Pages/Links/Details.cshtml b/Pages/Links/Details.cshtml
+index 9531069..f6c4236 100644
+--- a/Pages/Links/Details.cshtml
++++ b/Pages/Links/Details.cshtml
+@@ -95,6 +95,9 @@
+         <button class="btn btn-primary" type="submit">Add Comment</button>
+ 
+     </form>
++
++    @{ await Template(Model.Link.Comments); }
++
+ </div>
+ 
+ <div>
+```
+
+    git add . ; git commit --message 'Use Template to show comments'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Models/Comment.cs b/Models/Comment.cs
+index 98507c3..c586365 100644
+--- a/Models/Comment.cs
++++ b/Models/Comment.cs
+@@ -22,5 +22,10 @@ namespace LinkAggregator.Models
+         public IdentityUser User { get; set; }
+ 
+         public List<CommentVote> Votes { get; set; }
++
++        public int Score() =>
++            Votes
++                .Where(vote => vote.CommentId == Id)
++                .Sum(vote => vote.Score);
+     }
+ }
+```
+
+    git add . ; git commit --message 'Comment - Score method'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Pages/Links/Details.cshtml.cs b/Pages/Links/Details.cshtml.cs
+index 0609a1f..7ebf0ef 100644
+--- a/Pages/Links/Details.cshtml.cs
++++ b/Pages/Links/Details.cshtml.cs
+@@ -39,7 +39,7 @@ namespace LinkAggregator.Pages.Links
+             Link = await _context.Link
+                 .Include(link => link.User)
+                 .Include(link => link.Votes)
+-                .Include(link => link.Comments)
++                .Include(link => link.Comments).ThenInclude(comment => comment.Votes)
+                 .FirstOrDefaultAsync(m => m.Id == id);
+ 
+             if (Link == null)
+```
+
+    git add . ; git commit --message 'Details - Votes navigation property for Comment objects'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Pages/Links/Details.cshtml b/Pages/Links/Details.cshtml
+index f6c4236..493e594 100644
+--- a/Pages/Links/Details.cshtml
++++ b/Pages/Links/Details.cshtml
+@@ -17,6 +17,8 @@
+                     <div>
+                         @comment.Text
+                     </div>
++
++                    @comment.Score()
+                 </li>
+             </ul>
+         }
+```
+
+    git add . ; git commit --message 'Details - show comment score'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Models/Comment.cs b/Models/Comment.cs
+index c586365..aedabed 100644
+--- a/Models/Comment.cs
++++ b/Models/Comment.cs
+@@ -27,5 +27,8 @@ namespace LinkAggregator.Models
+             Votes
+                 .Where(vote => vote.CommentId == Id)
+                 .Sum(vote => vote.Score);
++
++        public CommentVote UserVote(string userId) =>
++            Votes.FirstOrDefault(vote => vote.UserId == userId);
+     }
+ }
+```
+
+    git add . ; git commit --message 'Comment - UserVote method'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Models/Comment.cs b/Models/Comment.cs
+index aedabed..6a57e2b 100644
+--- a/Models/Comment.cs
++++ b/Models/Comment.cs
+@@ -30,5 +30,12 @@ namespace LinkAggregator.Models
+ 
+         public CommentVote UserVote(string userId) =>
+             Votes.FirstOrDefault(vote => vote.UserId == userId);
++
++        public int UserScore(string userId)
++        {
++            var vote = UserVote(userId);
++
++            return vote == null ? 0 : vote.Score;
++        }
+     }
+ }
+```
+
+    git add . ; git commit --message 'Comment - UserScore method'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Models/Comment.cs b/Models/Comment.cs
+index 6a57e2b..6362fd1 100644
+--- a/Models/Comment.cs
++++ b/Models/Comment.cs
+@@ -37,5 +37,27 @@ namespace LinkAggregator.Models
+ 
+             return vote == null ? 0 : vote.Score;
+         }
++
++        public async Task Vote(int score, string voterUserId)
++        {
++            var vote = UserVote(voterUserId);
++
++            if (vote == null)
++            {
++                vote = new CommentVote()
++                {
++                    UserId = voterUserId,
++                    CommentId = Id,
++                    Score = score,
++                    DateTime = DateTime.Now
++                };
++
++                Votes.Add(vote);
++            }
++            else
++            {
++                vote.Score = vote.Score == score ? 0 : score;
++            }
++        }
+     }
+ }
+```
+
+    git add . ; git commit --message 'Comment - Vote method'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Pages/Links/Details.cshtml.cs b/Pages/Links/Details.cshtml.cs
+index 7ebf0ef..a5f74e6 100644
+--- a/Pages/Links/Details.cshtml.cs
++++ b/Pages/Links/Details.cshtml.cs
+@@ -86,5 +86,24 @@ namespace LinkAggregator.Pages.Links
+ 
+             return Redirect(HttpContext.Request.Headers["Referer"]);
+         }
++
++        public async Task<IActionResult> OnPostCommentVoteAsync(int id, int score)
++        {
++            if (User == null)
++                return Redirect(HttpContext.Request.Headers["Referer"]);
++
++            if (User.Identity.IsAuthenticated == false)
++                return Redirect(HttpContext.Request.Headers["Referer"]);
++
++            var comment = await _context.Comment
++                .Include(comment => comment.Votes)
++                .FirstOrDefaultAsync(comment => comment.Id == id);
++
++            await comment.Vote(score, UserManager.GetUserId(User));
++
++            await _context.SaveChangesAsync();
++
++            return Redirect(HttpContext.Request.Headers["Referer"]);
++        }
+     }
+ }
+```
+
+    git add . ; git commit --message 'Details - OnPostCommentVoteAsync'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Pages/Links/Details.cshtml b/Pages/Links/Details.cshtml
+index 493e594..be8aa9b 100644
+--- a/Pages/Links/Details.cshtml
++++ b/Pages/Links/Details.cshtml
+@@ -18,7 +18,31 @@
+                         @comment.Text
+                     </div>
+ 
++                    @if (User.Identity.IsAuthenticated)
++                    {
++                        <form asp-page-handler="CommentVote" style="display:inline" method="post">
++                            <input type="hidden" name="id" value="@comment.Id" />
++                            <input type="hidden" name="score" value="1" />
++                            <button class="btn @(comment.UserScore(Model.CurrentUserId()) == 1 ? "btn-primary" : "btn-secondary")"
++                                    type="submit">
++                                U
++                            </button>
++                        </form>
++                    }
++
+                     @comment.Score()
++
++                    @if (User.Identity.IsAuthenticated)
++                    {
++                        <form asp-page-handler="CommentVote" style="display:inline" method="post">
++                            <input type="hidden" name="id" value="@comment.Id" />
++                            <input type="hidden" name="score" value="-1" />
++                            <button class="btn @(comment.UserScore(Model.CurrentUserId()) == -1 ? "btn-primary" : "btn-secondary")"
++                                    type="submit">
++                                D
++                            </button>
++                        </form>
++                    }
+                 </li>
+             </ul>
+         }
+```
+
+    git add . ; git commit --message 'Details - comment vote buttons'
+
+----------------------------------------------------------------------
+
+    git tag comment-voting
+
+----------------------------------------------------------------------
+
+    git checkout master
+
+    git merge comments
+
+----------------------------------------------------------------------    
+
+    git checkout -b nested-comments
+
 ----------------------------------------------------------------------
 
 # Test the project with Canopy
