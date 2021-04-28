@@ -58,6 +58,12 @@ Run the source file:
 
 This currently takes around 2 minutes to complete on my system.
 
+### Navigating this document
+
+If you are reading this document on github, you can select the dropdown menu to the left of the line count to view the table of contents:
+
+![](table-of-contents-screenshot.png)
+
 ## Feedback
 
 If you feel that some aspect of the project could be built in a better way, feel free to leave an issue.
@@ -2530,7 +2536,225 @@ index 493e594..be8aa9b 100644
 
 ----------------------------------------------------------------------    
 
+# Nested comments
+
     git checkout -b nested-comments
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Models/Comment.cs b/Models/Comment.cs
+index 6362fd1..ac4348a 100644
+--- a/Models/Comment.cs
++++ b/Models/Comment.cs
+@@ -11,7 +11,7 @@ namespace LinkAggregator.Models
+     {
+         public int Id { get; set; }
+ 
+-        public int LinkId { get; set; }
++        public int? LinkId { get; set; }
+         public Link Link { get; set; }
+ 
+         public string Text { get; set; }
+```
+
+    git add . ; git commit --message 'Comment - Nullable LinkId'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Models/Comment.cs b/Models/Comment.cs
+index ac4348a..092f2b9 100644
+--- a/Models/Comment.cs
++++ b/Models/Comment.cs
+@@ -14,6 +14,10 @@ namespace LinkAggregator.Models
+         public int? LinkId { get; set; }
+         public Link Link { get; set; }
+ 
++        public int? ParentCommentId { get; set; }
++        public Comment ParentComment { get; set; }
++        public List<Comment> Comments { get; set; }
++
+         public string Text { get; set; }
+         public DateTime DateTime { get; set; }
+ 
+```
+
+----------------------------------------------------------------------
+
+    dotnet ef migrations add NestedComments
+    dotnet ef database update    
+
+----------------------------------------------------------------------
+
+    git add . ; git commit --message 'Comment - ParentComment'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Models/Comment.cs b/Models/Comment.cs
+index 092f2b9..e7a7c15 100644
+--- a/Models/Comment.cs
++++ b/Models/Comment.cs
+@@ -63,5 +63,18 @@ namespace LinkAggregator.Models
+                 vote.Score = vote.Score == score ? 0 : score;
+             }
+         }
++
++        public async Task AddComment(string text, string commenterUserId)
++        {
++            var comment = new Comment()
++            {
++                UserId = commenterUserId,
++                ParentCommentId = Id,
++                Text = text,
++                DateTime = DateTime.Now
++            };
++
++            Comments.Add(comment);
++        }
+     }
+ }
+```
+
+    git add . ; git commit --message 'Comment - AddComment method'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Pages/Links/Details.cshtml.cs b/Pages/Links/Details.cshtml.cs
+index a5f74e6..e42409f 100644
+--- a/Pages/Links/Details.cshtml.cs
++++ b/Pages/Links/Details.cshtml.cs
+@@ -42,6 +42,20 @@ namespace LinkAggregator.Pages.Links
+                 .Include(link => link.Comments).ThenInclude(comment => comment.Votes)
+                 .FirstOrDefaultAsync(m => m.Id == id);
+ 
++            void load_comments(List<Comment> comments)
++            {
++                foreach (var comment in comments)
++                {
++                    _context.Entry(comment).Reference(comment => comment.User).Load();
++                    _context.Entry(comment).Collection(comment => comment.Comments).Load();
++                    _context.Entry(comment).Collection(comment => comment.Votes).Load();
++
++                    load_comments(comment.Comments);
++                }
++            }
++
++            load_comments(Link.Comments);
++
+             if (Link == null)
+             {
+                 return NotFound();
+```
+
+    git add . ; git commit --message 'Details - load_comments function'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Pages/Links/Details.cshtml.cs b/Pages/Links/Details.cshtml.cs
+index e42409f..ccada0e 100644
+--- a/Pages/Links/Details.cshtml.cs
++++ b/Pages/Links/Details.cshtml.cs
+@@ -119,5 +119,24 @@ namespace LinkAggregator.Pages.Links
+ 
+             return Redirect(HttpContext.Request.Headers["Referer"]);
+         }
++
++        public async Task<IActionResult> OnPostAddReplyAsync(int id, string text)
++        {
++            if (User == null)
++                return Redirect(HttpContext.Request.Headers["Referer"]);
++
++            if (User.Identity.IsAuthenticated == false)
++                return Redirect(HttpContext.Request.Headers["Referer"]);
++
++            var comment = await _context.Comment
++                .Include(link => link.Comments)
++                .FirstOrDefaultAsync(comment => comment.Id == id);
++
++            await comment.AddComment(text, CurrentUserId());
++
++            await _context.SaveChangesAsync();
++
++            return Redirect(HttpContext.Request.Headers["Referer"]);
++        }
+     }
+ }
+```
+
+    git add . ; git commit --message 'Details - OnPostAddReplyAsync'
+
+----------------------------------------------------------------------
+
+```diff 
+diff --git a/Pages/Links/Details.cshtml b/Pages/Links/Details.cshtml
+index be8aa9b..93497e3 100644
+--- a/Pages/Links/Details.cshtml
++++ b/Pages/Links/Details.cshtml
+@@ -43,6 +43,47 @@
+                             </button>
+                         </form>
+                     }
++
++                    @if (comment.Comments.Count > 0)
++                    {
++                        <button class="btn btn-primary" type="button"
++                                data-toggle="collapse"
++                                data-target="#collapse_replies_@comment.Id"
++                                aria-expanded="false"
++                                aria-controls="collapse_replies_@comment.Id">
++                            Replies @comment.Comments.Count
++                        </button>
++                    }
++
++                    @if (User.Identity.IsAuthenticated)
++                    {
++                        <button class="btn btn-primary" type="button"
++                                data-toggle="collapse"
++                                data-target="#collapseExample_@comment.Id"
++                                aria-expanded="false" aria-controls="collapseExample_@comment.Id">
++                            Reply
++                        </button>
++
++                        <div class="collapse" id="collapseExample_@comment.Id">
++
++                            <form asp-page-handler="AddReply" method="post">
++
++                                <div class="form-group">
++                                    <input type="hidden" name="id" value="@comment.Id" />
++
++                                    <textarea class="form-control" name="text"></textarea>
++                                </div>
++
++                                <button class="btn btn-primary" type="submit">Submit</button>
++                            </form>
++                        </div>
++                    }
++
++                    <div class="collapse" id="collapse_replies_@comment.Id">
++
++                        @{ await Template(comment.Comments); }
++
++                    </div>
+                 </li>
+             </ul>
+         }
+```
+
+    git add . ; git commit --message 'Details - show nested comments'
+
+----------------------------------------------------------------------
+
+    git checkout master
+
+    git merge nested-comments
+
+    git branch -d nested-comments
+
+    git tag nested-comments
 
 ----------------------------------------------------------------------
 

@@ -58,6 +58,12 @@
 
 # This currently takes around 2 minutes to complete on my system.
 
+# ### Navigating this document
+
+# If you are reading this document on github, you can select the dropdown menu to the left of the line count to view the table of contents:
+
+# ![](table-of-contents-screenshot.png)
+
 # ## Feedback
 #
 # If you feel that some aspect of the project could be built in a better way, feel free to leave an issue.
