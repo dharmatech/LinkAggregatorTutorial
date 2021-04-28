@@ -2081,6 +2081,8 @@ index aefa538..b212959 100644
 
 # ----------------------------------------------------------------------
 
+# ## `Comment` model
+
 @"
 diff --git a/Models/Comment.cs b/Models/Comment.cs
 new file mode 100644
@@ -2117,6 +2119,8 @@ index 0000000..5a261f7
 "@ | git apply --whitespace=nowarn
 
 # ----------------------------------------------------------------------
+
+# ## `CommentVote` model
 
 @"
 diff --git a/Models/CommentVote.cs b/Models/CommentVote.cs
@@ -2155,6 +2159,8 @@ index 0000000..fcb1ab7
 
 # ----------------------------------------------------------------------
 
+# ## ApplicationDbContext
+
 @"
 diff --git a/Data/ApplicationDbContext.cs b/Data/ApplicationDbContext.cs
 index 6758500..3521bde 100644
@@ -2176,12 +2182,16 @@ index 6758500..3521bde 100644
 
 # ----------------------------------------------------------------------
 
+# ## Migration
+
     dotnet ef migrations add Comments
     dotnet ef database update
 
     git add . ; git commit --message 'Comments migration'
 
 # ----------------------------------------------------------------------
+
+# ## Link - `Comments` navigation property
 
 @"
 diff --git a/Models/Link.cs b/Models/Link.cs
