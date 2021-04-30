@@ -13,9 +13,6 @@
 # 
 # - Multiple users
 # - Voting
-#
-# In this early version of the tutorial, the following aren't implemented:
-#
 # - Authorization
 # - Comments
 #
@@ -1213,7 +1210,7 @@ index d864cb8..817d523 100644
     git add . ; git commit --message 'Pages\Links\Index.cshtml.cs - OnPostVoteAsync'
 # ----------------------------------------------------------------------
 
-# # Vote buttons
+# ## Vote buttons
 
 @"
 diff --git a/Pages/Links/Index.cshtml b/Pages/Links/Index.cshtml
