@@ -4,11 +4,7 @@
 # ## Introduction
 
 # This document provides steps on how to build a simple link aggregator site in ASP.NET Core Pages.
-#
-# Here's what the link list looks like:
-#
-# ![](screenshot-links.jpg)
-#
+
 # Currently implemented features:
 # 
 # - Multiple users
@@ -22,9 +18,23 @@
 # So, it doesn't explain every little detail along the way.
 # In this sense, it's more of a step-by-step cookbook recipe-style guide.
 
+# ## Screenshots
+
+# ### Links page
+
+# Here's what the link list looks like:
+#
+# ![](screenshot-links.jpg)
+
+# ### Comments page
+#
+# ![](screenshot-comments.jpg)
+
 # ## About this document
 
-# This tutorial was generated from a [source file](LinkAggregatorTutorial.ps1) written in PowerShell.
+# This document is an [executable tutorial](https://github.com/dharmatech/executable-tutorials/blob/main/executable-tutorials.org).
+
+# It was generated from a [source file](LinkAggregatorTutorial.ps1) written in PowerShell.
 # The script that converts the PowerShell source file to markdown is [here](https://github.com/dharmatech/LinkAggregatorTutorial/blob/main/ConvertToMarkdown.ps1).
 
 # That source file, when executed, will go through all the steps shown in this tutorial.
