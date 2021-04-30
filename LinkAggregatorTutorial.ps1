@@ -83,7 +83,7 @@ $ErrorActionPreference = 'Stop'
 # ----------------------------------------------------------------------
 # IGNORE-END
 
-# # Project directory
+# # Project
 
 # Go to the directory where our project will be created.
         
@@ -98,13 +98,13 @@ if (Test-Path LinkAggregator)
 }
 # IGNORE-END
 
-# Create project directory
+# ## Create project directory
 
     New-Item -ItemType Directory -Name LinkAggregator
 
     cd LinkAggregator
 
-# Create project
+# ## Create project
 
     dotnet new webapp --auth Individual --use-local-db
 

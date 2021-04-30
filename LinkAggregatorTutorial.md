@@ -72,7 +72,7 @@ If you notice any issue with the tutorial itself, also feel free to leave an iss
 
 
 
-# Project directory
+# Project
 
 Go to the directory where our project will be created.
         
@@ -80,13 +80,13 @@ Go to the directory where our project will be created.
 
 
 
-Create project directory
+## Create project directory
 
     New-Item -ItemType Directory -Name LinkAggregator
 
     cd LinkAggregator
 
-Create project
+## Create project
 
     dotnet new webapp --auth Individual --use-local-db
 
