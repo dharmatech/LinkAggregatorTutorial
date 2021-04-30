@@ -99,7 +99,9 @@ Go to the directory where our project will be created.
     git commit --message 'Initial checkin'
 ----------------------------------------------------------------------
 
-# `Link` model class for storing links
+# Links
+
+## `Link` model class for storing links
 
 Create the `Models\Link.cs` file.
 
@@ -129,7 +131,7 @@ index 0000000..29de407
     git add . ; git commit --message 'Add Link.cs'
 ----------------------------------------------------------------------
 
-# Generate pages for `Link`
+## Generate pages for `Link`
 
     dotnet add package Microsoft.VisualStudio.Web.CodeGeneration.Design
 
@@ -181,7 +183,7 @@ index 0465ef6..bdbe9ce 100644
 
 
 
-# Adding new links
+## Adding new links
 
 A user that isn't logged in can add an entry.
 
@@ -208,7 +210,7 @@ index fed813d..f1ee9d0 100644
     git add . ; git commit --message 'User must be logged in to add a link'
 ----------------------------------------------------------------------
 
-# Identity pages
+## Identity pages
 
 Scaffold out the identity pages
 
@@ -226,7 +228,7 @@ Scaffold out the identity pages
 
 ----------------------------------------------------------------------
 
-# Create form - remove `UserId`
+## Create form - remove `UserId`
 
 The 'Create' form has a field for `UserId`. We shouldn't have to enter this. Let's remove this field.
 
@@ -310,7 +312,7 @@ index 7ac2d77..a12e5c6 100644
     git add . ; git commit --message 'Pages\Links\Create.cshtml - remove UserId field'
 ----------------------------------------------------------------------
 
-# Create form: remove `DateTime`
+## Create form: remove `DateTime`
 
 The create form has a field for `DateTime`.
 
@@ -358,7 +360,7 @@ index a12e5c6..0f7a2d7 100644
     git add . ; git commit --message 'Create form - remove field for DateTime'
 ----------------------------------------------------------------------
 
-# Link model: add field for `Title`
+## Link model: add field for `Title`
 
 Currently, the user can only supply a url when adding a link.
 Most link aggregation sites allow the user to provide a title.
@@ -475,7 +477,7 @@ index e4c1c67..37ade6b 100644
     git add . ; git commit --message 'Pages\Links\Details.cshtml - add field for Title'
 ----------------------------------------------------------------------
 
-# Link index: Only show title
+## Link index: Only show title
 
 Link aggregation sites don't usually display the full URL in the link list.
 
@@ -511,7 +513,7 @@ index dfffe05..ea221d2 100644
     git add . ; git commit --message 'Pages\Links\Index.cshtml - remove field for Url'
 ----------------------------------------------------------------------
 
-# URL validation
+## URL validation
 
 Currently, the url field on the create form allows any value to be submitted.
 Let's make it only accept properly formatted URLs.
@@ -543,7 +545,7 @@ index 65cc4c4..f2aebcc 100644
     git add . ; git commit --message 'Models\Link.cs - DataType.Url'
 ----------------------------------------------------------------------
 
-# Link index: DateTime formatting
+## Link index: DateTime formatting
 
 The DateTime field on the link list shows the time as well as the date.
 Let's have it only display the date.
@@ -568,7 +570,7 @@ index f2aebcc..4582dea 100644
     git add . ; git commit --message 'Models\Link.cs - DataType.Date for DateTime'
 ----------------------------------------------------------------------
 
-# Adding support for usernames
+## Adding support for usernames
 
 Users have usernames on most link aggregation sites.
 Currently, when a new user registers, they are only asked for an email address and this is used as their username.
@@ -748,7 +750,7 @@ index ea221d2..23d0564 100644
     git add . ; git commit --message 'Login.cshtml - UserName'
 ----------------------------------------------------------------------
 
-# Clickable title
+## Clickable title
 
 Let's make the title a clickable link on the link list
 
