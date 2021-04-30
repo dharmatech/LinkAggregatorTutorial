@@ -2793,8 +2793,6 @@ index 93497e3..c207dee 100644
 
     git tag nested-comments
 
-
-
 ----------------------------------------------------------------------
 
 # Test the project with Canopy
@@ -2953,6 +2951,67 @@ index 933dba4..d2731c1 100644
 
     git add . ; git commit --message 'Turn off https redirection'
 
+----------------------------------------------------------------------
+
+## Comments
+
+```diff 
+diff --git a/Test/Program.fs b/Test/Program.fs
+index 9f0e757..b3ada70 100644
+--- a/Test/Program.fs
++++ b/Test/Program.fs
+@@ -97,6 +97,44 @@ start chrome
+     
+     screenshot "." "screenshot-links" |> ignore
+ 
++"user guy - comment" &&& fun _ ->
++
++    url "http://localhost:5000/Links/Details?id=2"
++
++    "/html/body/div/main/div[2]/form/div/textarea" << "Lisp Machine"
++
++    click "Add Comment"
++
++"user linus - comment" &&& fun _ ->
++
++    url "http://localhost:5000/Identity/Account/Login"
++
++    "#Input_UserName"   << "linus"
++
++    "#Input_Password"   << "Secret123!"
++
++    click "Log in"
++
++
++    url "http://localhost:5000/Links/Details?id=2"
++
++
++    click "/html/body/div/main/div[1]/dl/dd[5]/form[1]/button"
++
++    click "/html/body/div/main/div[2]/ul/li/form[1]/button"
++
++
++    click "/html/body/div/main/div[2]/ul/li/button"
++
++    "/html/body/div/main/div[2]/ul/li/div[2]/form/div/textarea" << "Linux"
++
++    click "/html/body/div/main/div[2]/ul/li/div[2]/form/button"
++
++
++    resize (780, 870)
++
++    screenshot "." "screenshot-comments" |> ignore
++
+ [<EntryPoint>]
+ let main args =
+     
+
+```
+
+    git add . ; git commit --message 'Additional test steps'
+
+----------------------------------------------------------------------
+
 
 
 Let's reset the database before running the tests:
@@ -2969,7 +3028,6 @@ In another PowerShell window, run the tests:
     dotnet run --project .\Test\Test.fsproj
 
 ----------------------------------------------------------------------
-
 
 
 
