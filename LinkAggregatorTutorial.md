@@ -2291,6 +2291,8 @@ index 4c14f76..9531069 100644
 
 ----------------------------------------------------------------------
 
+## Show comments
+
 ```diff 
 diff --git a/Pages/Links/Details.cshtml b/Pages/Links/Details.cshtml
 index 9531069..f6c4236 100644
@@ -2311,6 +2313,8 @@ index 9531069..f6c4236 100644
     git add . ; git commit --message 'Use Template to show comments'
 
 ----------------------------------------------------------------------
+
+# Comment voting
 
 ```diff 
 diff --git a/Models/Comment.cs b/Models/Comment.cs
@@ -2699,6 +2703,8 @@ index e42409f..ccada0e 100644
 
 ----------------------------------------------------------------------
 
+## Show nested comments
+
 ```diff 
 diff --git a/Pages/Links/Details.cshtml b/Pages/Links/Details.cshtml
 index be8aa9b..93497e3 100644
@@ -2758,6 +2764,28 @@ index be8aa9b..93497e3 100644
 
 ----------------------------------------------------------------------
 
+## Expand comments by default
+
+```diff 
+diff --git a/Pages/Links/Details.cshtml b/Pages/Links/Details.cshtml
+index 93497e3..c207dee 100644
+--- a/Pages/Links/Details.cshtml
++++ b/Pages/Links/Details.cshtml
+@@ -79,7 +79,7 @@
+                         </div>
+                     }
+ 
+-                    <div class="collapse" id="collapse_replies_@comment.Id">
++                    <div class="collapse show" id="collapse_replies_@comment.Id">
+ 
+                         @{ await Template(comment.Comments); }
+ 
+```
+
+    git add . ; git commit --message 'Expand comments by default'    
+
+----------------------------------------------------------------------
+
     git checkout master
 
     git merge nested-comments
@@ -2765,6 +2793,8 @@ index be8aa9b..93497e3 100644
     git branch -d nested-comments
 
     git tag nested-comments
+
+
 
 ----------------------------------------------------------------------
 
